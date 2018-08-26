@@ -43,7 +43,7 @@
  		(chan == 8 || chan == 12 || chan == 16) ||
  		/* 802.11j 4.9GHz (20MHz) */
 -		(chan == 184 || chan == 188 || chan == 192 || chan == 196));
-+		(chan == 184 || chan == 188 || chan == 192 || chan == 196)) ||
++		(chan == 184 || chan == 188 || chan == 192 || chan == 196) ||
 +		/* HAMNET 5.650-5.850 GHz (5MHz) */
 +		(chan >= 130 && chan <= 170));
  }
