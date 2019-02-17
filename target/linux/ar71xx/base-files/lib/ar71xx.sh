@@ -98,21 +98,27 @@ ubnt_xm_board_detect() {
 	[ -z "$model" ] || AR71XX_MODEL="${model}${magic:3:1}"
 }
 
-ubnt_ac_lite_get_mtd_part_magic() {
+ubnt_unifi_ac_get_mtd_part_magic() {
 	ar71xx_get_mtd_offset_size_format EEPROM 12 2 %02x
 }
 
-ubnt_ac_lite_board_detect() {
+ubnt_unifi_ac_board_detect() {
 	local model
 	local magic
 
-	magic="$(ubnt_ac_lite_get_mtd_part_magic)"
+	magic="$(ubnt_unifi_ac_get_mtd_part_magic)"
 	case ${magic:0:4} in
 	"e517")
 		model="Ubiquiti UniFi-AC-LITE"
 		;;
+	"e537")
+		model="Ubiquiti UniFi-AC-PRO"
+		;;
 	"e557")
 		model="Ubiquiti UniFi-AC-MESH"
+		;;
+	"e567")
+		model="Ubiquiti UniFi-AC-MESH-PRO"
 		;;
 	esac
 
@@ -492,6 +498,9 @@ ar71xx_board_detect() {
 		;;
 	*"Archer C59 v1")
 		name="archer-c59-v1"
+        ;;
+	*"Archer C59 v2")
+		name="archer-c59-v2"
 		;;
 	*"Archer C60 v1")
 		name="archer-c60-v1"
@@ -582,7 +591,14 @@ ar71xx_board_detect() {
 		;;
 	*"CPE510/520")
 		name="cpe510"
-		tplink_pharos_board_detect "$(tplink_pharos_get_model_string | tr -d '\r')"
+		tplink_pharos_board_detect "$(tplink_pharos_v2_get_model_string)"
+		case $AR71XX_MODEL in
+		'TP-Link CPE510 v2.0')
+			;;
+		*)
+			tplink_pharos_board_detect "$(tplink_pharos_get_model_string | tr -d '\r')"
+			;;
+		esac
 		;;
 	*"CPE830")
 		name="cpe830"
@@ -754,6 +770,9 @@ ar71xx_board_detect() {
 	*"GL-AR750")
 		name="gl-ar750"
 		;;
+	*"GL-AR750S")
+		name="gl-ar750s"
+		;;
 	*"GL-CONNECT INET v1")
 		name="gl-inet"
 
@@ -815,6 +834,9 @@ ar71xx_board_detect() {
 		;;
 	*"MiniBox V1.0")
 		name="minibox-v1"
+		;;
+	*"Minibox V3.2")
+		name="minibox-v3.2"
 		;;
 	*"MR12")
 		name="mr12"
@@ -1067,7 +1089,10 @@ ar71xx_board_detect() {
 	*"RouterBOARD 921GS-5HPacD r2")
 		name="rb-921gs-5hpacd-r2"
 		;;
-	*"RouterBOARD 941-2nD")
+	*"RouterBOARD 931-2nD")
+		name="rb-931-2nd"
+		;;
+	*"RouterBOARD"*"941-2nD")
 		name="rb-941-2nd"
 		;;
 	*"RouterBOARD 951G-2HnD")
@@ -1102,6 +1127,9 @@ ar71xx_board_detect() {
 		;;
 	*"RouterBOARD wAP 2nD r2")
 		name="rb-wap-2nd"
+		;;
+	*"RouterBOARD wAP R-2nD")
+		name="rb-wapr-2nd"
 		;;
 	*"RouterBOARD wAP G-5HacT2HnD")
 		name="rb-wapg-5hact2hnd"
@@ -1369,10 +1397,11 @@ ar71xx_board_detect() {
 		;;
 	*"UniFi-AC-LITE/MESH")
 		name="unifiac-lite"
-		ubnt_ac_lite_board_detect
+		ubnt_unifi_ac_board_detect
 		;;
-	*"UniFi-AC-PRO")
+	*"UniFi-AC-PRO/MESH-PRO")
 		name="unifiac-pro"
+		ubnt_unifi_ac_board_detect
 		;;
 	*"UniFiAP Outdoor")
 		name="unifi-outdoor"
