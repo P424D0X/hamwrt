@@ -27,7 +27,7 @@
  		if ((freq - 2407) % 5)
  			return NUM_HOSTAPD_MODES;
  
-@@ -921,7 +921,7 @@
+@@ -921,13 +921,13 @@
  }
  
  
@@ -36,7 +36,14 @@
  {
  	switch (op_class) {
  	case 12: /* channels 1..11 */
-@@ -965,7 +965,7 @@
+ 	case 32: /* channels 1..7; 40 MHz */
+ 	case 33: /* channels 5..11; 40 MHz */
+-		if (chan < 1 || chan > 11)
++		if (chan > 11)
+ 			return -1;
+ 		return 2407 + 5 * chan;
+ 	case 1: /* channels 36,40,44,48 */
+@@ -965,13 +965,13 @@
  }
  
  
@@ -45,7 +52,14 @@
  {
  	switch (op_class) {
  	case 4: /* channels 1..13 */
-@@ -1003,7 +1003,7 @@
+ 	case 11: /* channels 1..9; 40 MHz */
+ 	case 12: /* channels 5..13; 40 MHz */
+-		if (chan < 1 || chan > 13)
++		if (chan > 13)
+ 			return -1;
+ 		return 2407 + 5 * chan;
+ 	case 1: /* channels 36,40,44,48 */
+@@ -1003,13 +1003,13 @@
  }
  
  
@@ -54,7 +68,14 @@
  {
  	switch (op_class) {
  	case 30: /* channels 1..13 */
-@@ -1047,7 +1047,7 @@
+ 	case 56: /* channels 1..9; 40 MHz */
+ 	case 57: /* channels 5..13; 40 MHz */
+-		if (chan < 1 || chan > 13)
++		if (chan > 13)
+ 			return -1;
+ 		return 2407 + 5 * chan;
+ 	case 31: /* channel 14 */
+@@ -1047,13 +1047,13 @@
  }
  
  
@@ -63,7 +84,14 @@
  {
  	switch (op_class) {
  	case 7: /* channels 1..13 */
-@@ -1073,7 +1073,7 @@
+ 	case 8: /* channels 1..9; 40 MHz */
+ 	case 9: /* channels 5..13; 40 MHz */
+-		if (chan < 1 || chan > 13)
++		if (chan > 13)
+ 			return -1;
+ 		return 2407 + 5 * chan;
+ 	case 1: /* channels 36,40,44,48 */
+@@ -1073,13 +1073,13 @@
  }
  
  
@@ -72,6 +100,13 @@
  {
  	/* Table E-4 in IEEE Std 802.11-2012 - Global operating classes */
  	switch (op_class) {
+ 	case 81:
+ 		/* channels 1..13 */
+-		if (chan < 1 || chan > 13)
++		if (chan > 13)
+ 			return -1;
+ 		return 2407 + 5 * chan;
+ 	case 82:
 @@ -1141,7 +1141,7 @@
   * @chan: Channel number
   * Returns: Frequency in MHz or -1 if the specified channel is unknown
@@ -116,3 +151,286 @@
  int ieee80211_is_dfs(int freq);
  enum phy_type ieee80211_get_phy_type(int freq, int ht, int vht);
  
+--- a/wpa_supplicant/p2p_supplicant.c
++++ b/wpa_supplicant/p2p_supplicant.c
+@@ -3280,7 +3280,7 @@
+ }
+ 
+ 
+-static void wpas_p2p_add_chan(struct p2p_reg_class *reg, u8 chan)
++static void wpas_p2p_add_chan(struct p2p_reg_class *reg, s8 chan)
+ {
+ 	reg->channel[reg->channels] = chan;
+ 	reg->channels++;
+@@ -3350,7 +3350,7 @@
+ 
+ 
+ static int has_channel(struct wpa_global *global,
+-		       struct hostapd_hw_modes *mode, u8 chan, int *flags)
++		       struct hostapd_hw_modes *mode, s8 chan, int *flags)
+ {
+ 	int i;
+ 	unsigned int freq;
+@@ -8826,7 +8826,7 @@
+ 					     struct wpa_used_freq_data *freqs,
+ 					     unsigned int num)
+ {
+-	u8 curr_chan, cand, chan;
++	s8 curr_chan, cand, chan;
+ 	unsigned int i;
+ 
+ 	/*
+@@ -8922,7 +8922,7 @@
+ 
+ 	if (conf->ieee80211ac) {
+ 		int freq1 = 0, freq2 = 0;
+-		u8 chan, opclass;
++		s8 chan, opclass;
+ 
+ 		if (ieee80211_freq_to_channel_ext(params.freq,
+ 						  conf->secondary_channel,
+@@ -9122,7 +9122,7 @@
+ 			} else if ((wpa_s->drv_flags &
+ 				    WPA_DRIVER_FLAGS_AP_CSA) &&
+ 				   wpas_p2p_go_clients_support_ecsa(wpa_s)) {
+-				u8 chan;
++				s8 chan;
+ 
+ 				/*
+ 				 * We do not support CSA between bands, so move
+--- a/wpa_supplicant/wpa_supplicant_i.h
++++ b/wpa_supplicant/wpa_supplicant_i.h
+@@ -1121,7 +1121,7 @@
+ 	struct wpa_mbo_non_pref_channel {
+ 		enum mbo_non_pref_chan_reason reason;
+ 		u8 oper_class;
+-		u8 chan;
++		s8 chan;
+ 		u8 preference;
+ 	} *non_pref_chan;
+ 	size_t non_pref_chan_num;
+--- a/wpa_supplicant/config.c
++++ b/wpa_supplicant/config.c
+@@ -4368,7 +4368,7 @@
+ 	struct p2p_channel *pref = NULL, *n;
+ 	unsigned int num = 0;
+ 	const char *pos2;
+-	u8 op_class, chan;
++	s8 op_class, chan;
+ 
+ 	/* format: class:chan,class:chan,... */
+ 
+--- a/wpa_supplicant/rrm.c
++++ b/wpa_supplicant/rrm.c
+@@ -417,13 +417,13 @@
+ }
+ 
+ 
+-static int wpas_add_channel(u8 op_class, u8 chan, u8 num_primary_channels,
++static int wpas_add_channel(s8 op_class, s8 chan, u8 num_primary_channels,
+ 			    int *freqs)
+ {
+ 	size_t i;
+ 
+ 	for (i = 0; i < num_primary_channels; i++) {
+-		u8 primary_chan = chan - (2 * num_primary_channels - 2) + i * 4;
++		s8 primary_chan = chan - (2 * num_primary_channels - 2) + i * 4;
+ 
+ 		freqs[i] = ieee80211_chan_to_freq(NULL, op_class, primary_chan);
+ 		/* ieee80211_chan_to_freq() is not really meant for this
+@@ -472,7 +472,7 @@
+ 
+ 	next_freq = freqs;
+ 	for  (i = 0; i < num_chans; i++) {
+-		u8 chan = channels ? channels[i] : op->min_chan + i * op->inc;
++		s8 chan = channels ? channels[i] : op->min_chan + i * op->inc;
+ 		enum chan_allowed res = verify_channel(mode, chan, op->bw);
+ 
+ 		if (res == NOT_ALLOWED || (res == NO_IR && active))
+@@ -581,7 +581,7 @@
+ 
+ 
+ static int * wpas_beacon_request_freqs(struct wpa_supplicant *wpa_s,
+-				       u8 op_class, u8 chan, int active,
++				       s8 op_class, s8 chan, int active,
+ 				       const u8 *subelems, size_t len)
+ {
+ 	int *freqs = NULL, *ext_freqs = NULL;
+@@ -637,7 +637,7 @@
+ 
+ 
+ static int wpas_get_op_chan_phy(int freq, const u8 *ies, size_t ies_len,
+-				u8 *op_class, u8 *chan, u8 *phy_type)
++				s8 *op_class, s8 *chan, u8 *phy_type)
+ {
+ 	const u8 *ie;
+ 	int sec_chan = 0, vht = 0;
+--- a/wpa_supplicant/wps_supplicant.c
++++ b/wpa_supplicant/wps_supplicant.c
+@@ -2377,10 +2377,10 @@
+ 		return 0;
+ 
+ 	if (attr->ap_channel) {
+-		u16 chan = WPA_GET_BE16(attr->ap_channel);
++		s16 chan = WPA_GET_BE16(attr->ap_channel);
+ 		int freq = 0;
+ 
+-		if (chan >= 1 && chan <= 13)
++		if (chan <= 13)
+ 			freq = 2407 + 5 * chan;
+ 		else if (chan == 14)
+ 			freq = 2484;
+@@ -2654,11 +2654,11 @@
+ 		wpa_printf(MSG_DEBUG, "WPS: RF Bands: %d", *attr.rf_bands);
+ 
+ 	if (attr.ap_channel) {
+-		u16 chan = WPA_GET_BE16(attr.ap_channel);
++		s16 chan = WPA_GET_BE16(attr.ap_channel);
+ 
+ 		wpa_printf(MSG_DEBUG, "WPS: AP Channel: %d", chan);
+ 
+-		if (chan >= 1 && chan <= 13 &&
++		if (chan <= 13 &&
+ 		    (attr.rf_bands == NULL || *attr.rf_bands & WPS_RF_24GHZ))
+ 			freq = 2407 + 5 * chan;
+ 		else if (chan == 14 &&
+--- a/wpa_supplicant/op_classes.c
++++ b/wpa_supplicant/op_classes.c
+@@ -16,7 +16,7 @@
+ #include "wpa_supplicant_i.h"
+ 
+ 
+-static enum chan_allowed allow_channel(struct hostapd_hw_modes *mode, u8 chan,
++static enum chan_allowed allow_channel(struct hostapd_hw_modes *mode, s8 chan,
+ 				       unsigned int *flags)
+ {
+ 	int i;
+@@ -277,7 +277,7 @@
+ 			      size_t len)
+ {
+ 	struct wpabuf *buf;
+-	u8 op, current, chan;
++	s8 op, current, chan;
+ 	u8 *ie_len;
+ 	size_t res;
+ 
+--- a/wpa_supplicant/mbo.c
++++ b/wpa_supplicant/mbo.c
+@@ -25,7 +25,7 @@
+ #define MBO_IE_HEADER 6
+ 
+ 
+-static int wpas_mbo_validate_non_pref_chan(u8 oper_class, u8 chan, u8 reason)
++static int wpas_mbo_validate_non_pref_chan(s8 oper_class, s8 chan, u8 reason)
+ {
+ 	if (reason > MBO_NON_PREF_CHAN_REASON_INT_INTERFERENCE)
+ 		return -1;
+--- wnm_sta.c~	2019-02-17 18:23:47.575118359 +0100
++++ wnm_sta.c	2019-02-17 18:26:14.097325578 +0100
+@@ -428,7 +428,7 @@
+ }
+ 
+ 
+-static int wnm_nei_get_chan(struct wpa_supplicant *wpa_s, u8 op_class, u8 chan)
++static int wnm_nei_get_chan(struct wpa_supplicant *wpa_s, s8 op_class, s8 chan)
+ {
+ 	struct wpa_bss *bss = wpa_s->current_bss;
+ 	const char *country = NULL;
+@@ -448,7 +448,7 @@
+ 		 * information. Try to determine the most likely operating
+ 		 * frequency based on the channel number.
+ 		 */
+-		if (chan >= 1 && chan <= 13)
++		if (chan <= 13)
+ 			freq = 2407 + chan * 5;
+ 		else if (chan == 14)
+ 			freq = 2484;
+@@ -784,7 +784,7 @@
+ 
+ 
+ static int wnm_add_nei_rep(struct wpabuf **buf, const u8 *bssid,
+-			   u32 bss_info, u8 op_class, u8 chan, u8 phy_type,
++			   u32 bss_info, s8 op_class, s8 chan, u8 phy_type,
+ 			   u8 pref)
+ {
+ 	if (wpabuf_len(*buf) + 18 >
+@@ -820,7 +820,7 @@
+ 			       u8 pref)
+ {
+ 	const u8 *ie;
+-	u8 op_class, chan;
++	s8 op_class, chan;
+ 	int sec_chan = 0, vht = 0;
+ 	enum phy_type phy_type;
+ 	u32 info;
+--- a/src/common/ieee802_11_defs.h
++++ b/src/common/ieee802_11_defs.h
+@@ -1886,8 +1886,8 @@
+ 	u8 len;
+ 	u8 mb_ctrl;
+ 	u8 band_id;
+-	u8 op_class;
+-	u8 chan;
++	s8 op_class;
++	s8 chan;
+ 	u8 bssid[ETH_ALEN];
+ 	le16 beacon_int;
+ 	u8 tsf_offs[8];
+--- a/src/ap/hostapd.c
++++ b/src/ap/hostapd.c
+@@ -3237,7 +3237,8 @@
+ 	struct hostapd_iface *iface = hapd->iface;
+ 	struct hostapd_freq_params old_freq;
+ 	int ret;
+-	u8 chan, vht_bandwidth;
++	s8 chan;
++	u8 vht_bandwidth;
+ 
+ 	os_memset(&old_freq, 0, sizeof(old_freq));
+ 	if (!iface || !iface->freq || hapd->csa_in_progress)
+--- a/src/ap/ieee802_11_ht.c
++++ b/src/ap/ieee802_11_ht.c
+@@ -333,7 +333,7 @@
+ 		/* Go through the channel report to find any BSS there in the
+ 		 * affected channel range */
+ 		for (i = 0; i < ielen - 1; i++) {
+-			u8 chan = ic_report->variable[i];
++			s8 chan = ic_report->variable[i];
+ 
+ 			if (chan == iface->conf->channel)
+ 				continue; /* matching own primary channel */
+--- a/src/p2p/p2p_utils.c
++++ b/src/p2p/p2p_utils.c
+@@ -415,7 +415,7 @@
+ int p2p_channel_random_social(struct p2p_channels *chans, u8 *op_class,
+ 			      u8 *op_channel)
+ {
+-	u8 chan[4];
++	s8 chan[4];
+ 	unsigned int num_channels = 0;
+ 
+ 	/* Try to find available social channels from 2.4 GHz */
+--- a/src/p2p/p2p.h
++++ b/src/p2p/p2p.h
+@@ -413,8 +413,8 @@
+ };
+ 
+ struct p2p_channel {
+-	u8 op_class;
+-	u8 chan;
++	s8 op_class;
++	s8 chan;
+ };
+ 
+ /**
+@@ -2374,8 +2374,8 @@
+ void p2p_set_own_pref_freq_list(struct p2p_data *p2p,
+ 				const unsigned int *pref_freq_list,
+ 				unsigned int size);
+-void p2p_set_override_pref_op_chan(struct p2p_data *p2p, u8 op_class,
+-				   u8 chan);
++void p2p_set_override_pref_op_chan(struct p2p_data *p2p, s8 op_class,
++				   s8 chan);
+ 
+ /**
+  * p2p_group_get_common_freqs - Get the group common frequencies
